@@ -4,28 +4,40 @@ class VertexShader {
 public:
 	VertexShader() {
 		// generate buffer ID
-		glGenBuffers(1, &VBO);
+		glGenBuffers(1, &mVBO);
 
 		// bind buffer so calls on GL_ARRAY_BUFFER will configure VBO
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
+		glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
 		// copy vertex data into buffer memory 
 		// STATIC_DRAW = data is set once and used many times
 		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 		// create shader
-		vertexShader = glCreateShader(GL_VERTEX_SHADER);
-		glShaderSource(vertexShader, 1, &vertexShaderSource, NULL); // attach source code
-		glCompileShader(vertexShader);
+		mVertexShader = glCreateShader(GL_VERTEX_SHADER);
+		glShaderSource(mVertexShader, 1, &vertexShaderSource, NULL); // attach source code
+		glCompileShader(mVertexShader);
 
 		checkErrors();
 	}
 
-	unsigned int getShader() const { return vertexShader; };
+	// bind VAO and configure with member VBO and vertices data
+	void configureVAO(unsigned int mVAO) const {
+		mVAO = mVAO;
+		glBindVertexArray(mVAO);
+		glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+		glEnableVertexAttribArray(0);
+	}
+
+	unsigned int getShader() const { return mVertexShader; };
+	unsigned int getVBO() const { return mVBO; };
 
 private:
-	unsigned int VBO; // vertex buffer object ID
-	unsigned int vertexShader;
+	unsigned int mVBO; // vertex buffer object ID
+	unsigned int mVertexShader;
+	unsigned int mVAO;
 
 	// GLSL source code of basic vertex shader
 	const char* vertexShaderSource = "#version 330 core\n"
@@ -45,9 +57,9 @@ private:
 	void checkErrors() const {
 		int success;
 		char infoLog[512];
-		glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+		glGetShaderiv(mVertexShader, GL_COMPILE_STATUS, &success);
 		if (!success) {
-			glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
+			glGetShaderInfoLog(mVertexShader, 512, NULL, infoLog);
 			std::cout << "ERROR: Vertex shader compilation failed. Log:" << std::endl;
 			std::cout << infoLog << std::endl;
 		}

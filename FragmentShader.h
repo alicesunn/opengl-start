@@ -4,17 +4,17 @@ class FragmentShader {
 public:
 	FragmentShader() {
 		// create shader
-		fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-		glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL); // attach source code
-		glCompileShader(fragmentShader);
+		mFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+		glShaderSource(mFragmentShader, 1, &fragmentShaderSource, NULL); // attach source code
+		glCompileShader(mFragmentShader);
 
 		checkErrors();
 	}
 
-	unsigned int getShader() const { return fragmentShader; };
+	unsigned int getShader() const { return mFragmentShader; }
 
 private:
-	unsigned int fragmentShader;
+	unsigned int mFragmentShader = 0;
 
 	// GLSL source code of basic fragment shader
 	const char* fragmentShaderSource = "#version 330 core\n"
@@ -27,9 +27,9 @@ private:
 	void checkErrors() const {
 		int success;
 		char infoLog[512];
-		glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+		glGetShaderiv(mFragmentShader, GL_COMPILE_STATUS, &success);
 		if (!success) {
-			glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+			glGetShaderInfoLog(mFragmentShader, 512, NULL, infoLog);
 			std::cout << "ERROR: Fragment shader compilation failed. Log:" << std::endl;
 			std::cout << infoLog << std::endl;
 		}

@@ -7,7 +7,7 @@
 #include "FragmentShader.h"
 
 // callback for adjusting the viewport on window resize
-static void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
+static void framebuffer_size_callback(GLFWwindow* mWindow, int width, int height) {
     glViewport(0, 0, width, height);
 }
 
@@ -29,13 +29,13 @@ bool Main::initialize() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
     // create window object
-    window = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-    if (!window) {
+    mWindow = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
+    if (!mWindow) {
         std::cout << "Failed to create window" << std::endl;
         glfwTerminate();
         return false;
     }
-    glfwMakeContextCurrent(window);
+    glfwMakeContextCurrent(mWindow);
 
     // init GLAD, which manages function pointers for OpenGL
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -49,36 +49,53 @@ bool Main::initialize() {
 
     // register any callbacks after window creation but before render loop:
     // call framebuffer_size_callback on every resize
-    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 
-    initializeShaderObject(VertexShader().getShader(), FragmentShader().getShader());
+    // initialize shaders
+    mVertexShader = new VertexShader();
+    mFragmentShader = new FragmentShader();
+    initializeShaderObject(mVertexShader->getShader(), mFragmentShader->getShader());
+
+    // set up VAO
+    glGenVertexArrays(1, &mVAO);
+    mVertexShader->configureVAO(mVAO);
 
     return true;
 }
 
 void Main::shutdown() {
-    // clean up
+    delete mVertexShader;
+    delete mFragmentShader;
     glfwTerminate();
 }
 
 void Main::renderLoop() {
     // initiate render loop
-    while (!glfwWindowShouldClose(window)) {
+    while (!glfwWindowShouldClose(mWindow)) {
         // handle input
-        processInput(window);
+        processInput(mWindow);
 
-        // rendering commands
+        // rendering commands --------------
+
+        // set background to greenish color
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // glClearColor sets a color value which glClear uses
         glClear(GL_COLOR_BUFFER_BIT);         // to clear the specified buffer (aka color buffer)
 
+        // draw triangle
+        glUseProgram(mShaderProgram);
+        glBindVertexArray(mVAO);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // ---------------------------------
+
         // check and call events and swap buffers
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(mWindow);
         glfwPollEvents();
     }
 }
 
-void Main::processInput(GLFWwindow* window) {
+void Main::processInput(GLFWwindow* mWindow) {
     // esc closes the window
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
+    if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(mWindow, true);
 }
