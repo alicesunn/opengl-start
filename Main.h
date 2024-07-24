@@ -11,7 +11,8 @@ public:
 
 private:
 	unsigned int mShaderProgram;
-	unsigned int mVAO; // vertex array object ID
+	unsigned int mVAO; // vertex array object
+	unsigned int mEBO; // element buffer object
 
 	GLFWwindow* mWindow;
 	VertexShader* mVertexShader;

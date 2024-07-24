@@ -52,13 +52,18 @@ bool Main::initialize() {
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 
     // initialize shaders
+    // TODO: move VBO/VAO/EBO code to new class for storing/generating data
+    //       since they are separate entities from the shaders
     mVertexShader = new VertexShader();
+    mVertexShader->configureVBO();
     mFragmentShader = new FragmentShader();
     initializeShaderObject(mVertexShader->getShader(), mFragmentShader->getShader());
 
     // set up VAO
-    glGenVertexArrays(1, &mVAO);
     mVertexShader->configureVAO(mVAO);
+
+    // set up EBO
+    mVertexShader->configureEBO(mEBO);
 
     return true;
 }
@@ -75,8 +80,10 @@ void Main::renderLoop() {
         // handle input
         processInput(mWindow);
 
-        // rendering commands --------------
+        // turn on wireframe mode
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+        // rendering commands ----------------------------
         // set background to greenish color
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // glClearColor sets a color value which glClear uses
         glClear(GL_COLOR_BUFFER_BIT);         // to clear the specified buffer (aka color buffer)
@@ -84,9 +91,20 @@ void Main::renderLoop() {
         // draw triangle
         glUseProgram(mShaderProgram);
         glBindVertexArray(mVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        // type, starting index of VAO, number vertices to draw
+        //glDrawArrays(GL_TRIANGLES, 0, 3);
 
-        // ---------------------------------
+        // draw rectangle
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
+        // type, number elements to draw, type of indices, offset of EBO
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        // -----------------------------------------------
+
+        // turn off wireframe mode
+        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        // reset binding (?)
+        glBindVertexArray(0);
 
         // check and call events and swap buffers
         glfwSwapBuffers(mWindow);
