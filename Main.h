@@ -2,6 +2,7 @@
 
 class Shader;
 class Data;
+class Texture;
 
 class Main {
 public:
@@ -12,7 +13,9 @@ public:
 private:
 	GLFWwindow* mWindow;
 	Shader* mShader;
-	Data* triangle;
+	Data* mShape;
+	Texture* mTexture1;
+	Texture* mTexture2;
 
 	void processInput(GLFWwindow* mWindow);
 };

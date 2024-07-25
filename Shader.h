@@ -2,8 +2,8 @@
 
 #ifndef SHADER_H
 #define SHADER_H
-#include <glad/glad.h>
 
+#include <glad/glad.h>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -59,7 +59,8 @@ public:
 		glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-			std::cout << "(constructor, Shader.h) ERROR: Vertex shader compilation failed. Logs:" << std::endl;
+			std::cout << "(constructor, Shader.h) "
+				<< "ERROR: Vertex shader compilation failed.Logs : " << std::endl;
 			std::cout << infoLog << std::endl;
 		}
 
@@ -72,7 +73,8 @@ public:
 		glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
 		if (!success) {
 			glGetShaderInfoLog(vertex, 512, NULL, infoLog);
-			std::cout << "(constructor, Shader.h) ERROR: Fragment shader compilation failed. Logs:" << std::endl;
+			std::cout << "(constructor, Shader.h) "
+				<< "ERROR: Fragment shader compilation failed.Logs : " << std::endl;
 			std::cout << infoLog << std::endl;
 		}
 
@@ -86,7 +88,8 @@ public:
 		glGetProgramiv(mProgram, GL_LINK_STATUS, &success);
 		if (!success) {
 			glGetProgramInfoLog(mProgram, 512, NULL, infoLog);
-			std::cout << "(constructor, Shader.h) ERROR: Shader program linking failed. Logs:" << std::endl;
+			std::cout << "(constructor, Shader.h) "
+				<< "ERROR: Shader program linking failed.Logs : " << std::endl;
 			std::cout << infoLog << std::endl;
 		}
 
@@ -96,7 +99,7 @@ public:
 	}
 
 	// activate shader
-	void use() {
+	void use() const {
 		glUseProgram(mProgram);
 	}
 

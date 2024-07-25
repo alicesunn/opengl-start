@@ -5,6 +5,7 @@
 #include "Main.h"
 #include "Shader.h"
 #include "Data.h"
+#include "Texture.h"
 
 // callback for adjusting the viewport on window resize
 static void framebuffer_size_callback(GLFWwindow* mWindow, int width, int height) {
@@ -54,19 +55,24 @@ bool Main::initialize() {
     // initialize shader
     mShader = new Shader("VertexShader.txt", "FragmentShader.txt");
 
-    // set up VBO, VAO
-    triangle = new Data();
-    triangle->configureVBO();
-    triangle->configureVAO();
+    // set up VBO, VAO, EBO
+    mShape = new Data();
+    mShape->generateObjects();
 
-    // set up EBO for rectangle
-    //rectangle.configureEBO(mEBO);
+    // set up textures
+    mTexture1 = new Texture("container.jpg", true, false, false);
+    mTexture2 = new Texture("awesomeface.png", false, true, true);
+    mShader->use();
+    mShader->setInt("texture1", 0);
+    mShader->setInt("texture2", 1);
 
     return true;
 }
 
 void Main::shutdown() {
-    delete triangle;
+    delete mTexture1;
+    delete mTexture2;
+    delete mShape;
     delete mShader;
     glfwTerminate();
 }
@@ -84,9 +90,22 @@ void Main::renderLoop() {
         // activate shader
         mShader->use();
 
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mTexture1->getTexture());
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, mTexture2->getTexture());
+
+        glBindVertexArray(mShape->getVAO());
+
         // draw triangle
-        glBindVertexArray(triangle->getVAO());
-        glDrawArrays(GL_TRIANGLES, 0, 3); // type, VAO starting index, number vertices to draw
+        //glDrawArrays(GL_TRIANGLES, 0, 3); // type, VAO starting index, number vertices to draw
+
+        // draw rectangle
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mShape->getEBO());
+        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+        // reset binding
+        //glBindVertexArray(0);
 
         // swap buffers and poll IO events
         glfwSwapBuffers(mWindow);
