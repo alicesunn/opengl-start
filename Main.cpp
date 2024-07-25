@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "Main.h"
-#include "VertexShader.h"
-#include "FragmentShader.h"
+#include "Shader.h"
+#include "Data.h"
 
 // callback for adjusting the viewport on window resize
 static void framebuffer_size_callback(GLFWwindow* mWindow, int width, int height) {
@@ -51,26 +51,23 @@ bool Main::initialize() {
     // call framebuffer_size_callback on every resize
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 
-    // initialize shaders
-    // TODO: move VBO/VAO/EBO code to new class for storing/generating data
-    //       since they are separate entities from the shaders
-    mVertexShader = new VertexShader();
-    mVertexShader->configureVBO();
-    mFragmentShader = new FragmentShader();
-    initializeShaderObject(mVertexShader->getShader(), mFragmentShader->getShader());
+    // initialize shader
+    mShader = new Shader("VertexShader.txt", "FragmentShader.txt");
 
-    // set up VAO
-    mVertexShader->configureVAO(mVAO);
+    // set up VBO, VAO
+    triangle = new Data();
+    triangle->configureVBO();
+    triangle->configureVAO();
 
-    // set up EBO
-    mVertexShader->configureEBO(mEBO);
+    // set up EBO for rectangle
+    //rectangle.configureEBO(mEBO);
 
     return true;
 }
 
 void Main::shutdown() {
-    delete mVertexShader;
-    delete mFragmentShader;
+    delete triangle;
+    delete mShader;
     glfwTerminate();
 }
 
@@ -80,33 +77,18 @@ void Main::renderLoop() {
         // handle input
         processInput(mWindow);
 
-        // turn on wireframe mode
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        // rendering commands ----------------------------
         // set background to greenish color
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // glClearColor sets a color value which glClear uses
         glClear(GL_COLOR_BUFFER_BIT);         // to clear the specified buffer (aka color buffer)
 
+        // activate shader
+        mShader->use();
+
         // draw triangle
-        glUseProgram(mShaderProgram);
-        glBindVertexArray(mVAO);
-        // type, starting index of VAO, number vertices to draw
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(triangle->getVAO());
+        glDrawArrays(GL_TRIANGLES, 0, 3); // type, VAO starting index, number vertices to draw
 
-        // draw rectangle
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mEBO);
-        // type, number elements to draw, type of indices, offset of EBO
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        // -----------------------------------------------
-
-        // turn off wireframe mode
-        //glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-        // reset binding (?)
-        glBindVertexArray(0);
-
-        // check and call events and swap buffers
+        // swap buffers and poll IO events
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
     }
