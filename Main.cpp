@@ -1,6 +1,10 @@
+#include <iostream>
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <iostream>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "Main.h"
 #include "Shader.h"
@@ -23,32 +27,11 @@ int main()
 }
 
 bool Main::initialize() {
-    // configure GLFW and inform it which OpenGL version is being used (3.3)
-    glfwInit();
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
-    // create window object
-    mWindow = glfwCreateWindow(800, 600, "LearnOpenGL", NULL, NULL);
-    if (!mWindow) {
-        std::cout << "Failed to create window" << std::endl;
-        glfwTerminate();
+    bool success = setupWindow();
+    if (!success)
         return false;
-    }
-    glfwMakeContextCurrent(mWindow);
 
-    // init GLAD, which manages function pointers for OpenGL
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-        std::cout << "Failed to initialize GLAD" << std::endl;
-        return false;
-    }
-
-    // set location and size of rendering window (how to display stuff with respect to window)
-    // where x,y start from the lower left corner
-    glViewport(0, 0, 800, 600); // x, y, width, height
-
-    // register any callbacks after window creation but before render loop:
+    // register callbacks after window creation but before render loop:
     // call framebuffer_size_callback on every resize
     glfwSetFramebufferSizeCallback(mWindow, framebuffer_size_callback);
 
@@ -65,6 +48,8 @@ bool Main::initialize() {
     mShader->use();
     mShader->setInt("texture1", 0);
     mShader->setInt("texture2", 1);
+    
+    // vector/matrix experimentation
 
     return true;
 }
@@ -94,6 +79,13 @@ void Main::renderLoop() {
         glBindTexture(GL_TEXTURE_2D, mTexture1->getTexture());
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, mTexture2->getTexture());
+
+        // experiment: move rect to bottom right and apply rotation over time
+        glm::mat4 trans = glm::mat4(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+        unsigned int transformLoc = glGetUniformLocation(mShader->getProgram(), "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
 
         glBindVertexArray(mShape->getVAO());
 
