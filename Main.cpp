@@ -1,15 +1,4 @@
-#include <iostream>
-
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
 #include "Main.h"
-#include "Shader.h"
-#include "Data.h"
-#include "Texture.h"
 
 // callback for adjusting the viewport on window resize
 static void framebuffer_size_callback(GLFWwindow* mWindow, int width, int height) {
@@ -42,14 +31,15 @@ bool Main::initialize() {
     mShape = new Data();
     mShape->generateObjects();
 
+
     // set up textures
-    mTexture1 = new Texture("container.jpg", true, false, false);
-    mTexture2 = new Texture("awesomeface.png", false, true, true);
+    mTexture1 = new Texture("container.jpg", true, true, false);
+    mTexture2 = new Texture("awesomeface.png", true, true, true);
+
+    // tell uniform variables which texture unit to sample
     mShader->use();
     mShader->setInt("texture1", 0);
     mShader->setInt("texture2", 1);
-    
-    // vector/matrix experimentation
 
     return true;
 }
@@ -69,32 +59,22 @@ void Main::renderLoop() {
         processInput(mWindow);
 
         // set background to greenish color
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // glClearColor sets a color value which glClear uses
-        glClear(GL_COLOR_BUFFER_BIT);         // to clear the specified buffer (aka color buffer)
+        glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // sets a color value which glClear uses to clear
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // the specified buffers
 
-        // activate shader
-        mShader->use();
-
+        // bind container/happy face texture to rect
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture1->getTexture());
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, mTexture2->getTexture());
 
-        // experiment: move rect to bottom right and apply rotation over time
-        glm::mat4 trans = glm::mat4(1.0f);
-        trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
-        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
-        unsigned int transformLoc = glGetUniformLocation(mShader->getProgram(), "transform");
-        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+        // activate shader
+        mShader->use();
 
-        glBindVertexArray(mShape->getVAO());
+        // update transform matrices every frame
+        updateMatrices(false, true, true);
 
-        // draw triangle
-        //glDrawArrays(GL_TRIANGLES, 0, 3); // type, VAO starting index, number vertices to draw
-
-        // draw rectangle
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mShape->getEBO());
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        drawThings();
 
         // reset binding
         //glBindVertexArray(0);
@@ -102,6 +82,20 @@ void Main::renderLoop() {
         // swap buffers and poll IO events
         glfwSwapBuffers(mWindow);
         glfwPollEvents();
+    }
+}
+
+void Main::drawThings() {
+    // bind VAO to active
+    glBindVertexArray(mShape->getVAO());
+
+    // draw 10 cubes
+    for (int i = 0; i < 10; i++) {
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), cubePositions[i]);
+        model = glm::rotate(model, glm::radians((float) (20.0f * i)), glm::vec3(1.0f, 0.3f, 0.5f));
+        mShader->setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
     }
 }
 

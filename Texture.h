@@ -8,6 +8,8 @@
 #include <string>
 #include <iostream>
 
+#include "stb_image.h"
+
 class Texture {
 public:
 	Texture(std::string imagePath, bool configWrapAndFilter = false, bool flipVertical = false, bool hasAlpha = false) {
