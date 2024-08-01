@@ -14,6 +14,7 @@
 #include "Shader.h"
 #include "Data.h"
 #include "Texture.h"
+#include "Camera.h"
 
 class Main {
 public:
@@ -24,12 +25,15 @@ public:
 private:
 	float mViewWidth = 800.0f;
 	float mViewHeight = 600.0f;
+	float mDeltaTime = 0.0f; // time between current frame and last frame
+	float mLastFrame = 0.0f; // time of last frame
 
-	GLFWwindow* mWindow = nullptr;
-	Shader* mShader = nullptr;
-	Data* mShape = nullptr;
-	Texture* mTexture1 = nullptr;
-	Texture* mTexture2 = nullptr;
+	GLFWwindow* mWindow;
+	Shader* mShader;
+	Camera* mCamera;
+	Data* mShape;
+	Texture* mTexture1;
+	Texture* mTexture2;
 
 	void processInput(GLFWwindow* mWindow);
 	void drawThings();
@@ -59,10 +63,7 @@ private:
 		}
 
 		if (setView) {
-			glm::mat4 view = glm::mat4(1.0f);
-			// move camera slightly towards viewer (aka move scene slightly backwards)
-			view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-			mShader->setMat4("view", view);
+			mShader->setMat4("view", mCamera->getView());
 		}
 
 		if (setProj) {

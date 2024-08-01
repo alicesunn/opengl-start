@@ -31,7 +31,6 @@ bool Main::initialize() {
     mShape = new Data();
     mShape->generateObjects();
 
-
     // set up textures
     mTexture1 = new Texture("container.jpg", true, true, false);
     mTexture2 = new Texture("awesomeface.png", true, true, true);
@@ -41,10 +40,14 @@ bool Main::initialize() {
     mShader->setInt("texture1", 0);
     mShader->setInt("texture2", 1);
 
+    // set up camera/view matrix
+    mCamera = new Camera();
+
     return true;
 }
 
 void Main::shutdown() {
+    delete mCamera;
     delete mTexture1;
     delete mTexture2;
     delete mShape;
@@ -55,6 +58,11 @@ void Main::shutdown() {
 void Main::renderLoop() {
     // initiate render loop
     while (!glfwWindowShouldClose(mWindow)) {
+        // calculate delta time
+        float curFrame = glfwGetTime();
+        mDeltaTime = curFrame - mLastFrame;
+        mLastFrame = curFrame;
+
         // handle input
         processInput(mWindow);
 
@@ -99,8 +107,11 @@ void Main::drawThings() {
     }
 }
 
-void Main::processInput(GLFWwindow* mWindow) {
+void Main::processInput(GLFWwindow* window) {
     // esc closes the window
     if (glfwGetKey(mWindow, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(mWindow, true);
+        glfwSetWindowShouldClose(window, true);
+
+    // WASD camera movement
+    mCamera->moveCamera(window, mDeltaTime);
 }
